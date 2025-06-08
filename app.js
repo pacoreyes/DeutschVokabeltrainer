@@ -1,4 +1,5 @@
-const url = 'https://docs.google.com/spreadsheets/d/1JiJrQCHym8USlLnTQhVtFCX4N1XtqW8S6flhEX6y-VE/gviz/tq?tqx=out:json';
+const base = 'https://docs.google.com/spreadsheets/d/1JiJrQCHym8USlLnTQhVtFCX4N1XtqW8S6flhEX6y-VE/gviz/tq?tqx=out:json';
+
 let verbs = [];
 let mode = '';
 let current = null;
@@ -8,17 +9,23 @@ const names = { 'infinitive':'Infinitiv','er/sie/es':'er/sie/es','präteritum':'
 const content = document.getElementById('content');
 const footerBtn = document.getElementById('footerBtn');
 
-async function fetchData(){
-  const res = await fetch(url);
+async function fetchSheet(gid){
+  const res = await fetch(`${base}&gid=${encodeURIComponent(gid)}`);
   const text = await res.text();
   const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}')+1));
   const rows = json.table.rows;
-  const headers = rows[0].c.map(c=>c.v.toLowerCase());
-  verbs = rows.slice(1).map(r => {
-    const obj = {};
+  const headers = rows[0].c.map(c=>c.v);
+  return rows.slice(1).map(r=>{
+    const obj={};
     r.c.forEach((cell,i)=>obj[headers[i]]=cell?cell.v:'');
     return obj;
   });
+}
+
+async function fetchData(){
+  const sheets=['0','unregelmäßige'];
+  const data=await Promise.all(sheets.map(fetchSheet));
+  verbs=data.flat();
 }
 
 function showMenu(){
@@ -56,10 +63,12 @@ function nextQuestion(){
     prompt = `What is the ${names[askForm]} of "${current[showForm]}"?`;
     expected = current[askForm];
   }
-  content.innerHTML=`<p>${prompt}</p><input id="answer" autocomplete="off">`;
+
+  content.innerHTML=`<p>${prompt}</p><input id="answer" autocomplete="off"><button id="submitBtn">Submit</button>`;
   const input=document.getElementById('answer');
   input.focus();
   input.addEventListener('keydown',e=>{if(e.key==='Enter')checkAnswer();});
+  document.getElementById('submitBtn').onclick=checkAnswer;
   footerBtn.textContent='Skip word';
   footerBtn.onclick=()=>nextQuestion();
   footerBtn.style.display='block';
