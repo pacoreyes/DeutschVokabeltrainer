@@ -37,9 +37,7 @@ async function fetchSheet(sheetName){
 }
 
 async function loadSheets(ids) {
-  console.log('Loading sheets:', ids);
   const data = await Promise.all(ids.map(fetchSheet));
-  console.log('Sheets loaded:', data);
   return data.flat();
 }
 
