@@ -137,7 +137,7 @@ function nextQuestion() {
     do {
       to = formTypes[Math.floor(Math.random() * formTypes.length)];
     } while (to === from);
-    question = `What is the ${verbFormMap[to]} form of "${v[from]}"?`;
+    question = `What is the ${verbFormMap[to]} form of "${v[from]}" (${verbFormMap[from]})?`;
     expected = v[to];
   }
 
