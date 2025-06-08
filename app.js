@@ -13,7 +13,7 @@ async function fetchData(){
   const text = await res.text();
   const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}')+1));
   const rows = json.table.rows;
-  const headers = rows[0].c.map(c=>c.v.toLowerCase());
+  const headers = rows[0].c.map(c=>c.v); // use exact column names
   verbs = rows.slice(1).map(r => {
     const obj = {};
     r.c.forEach((cell,i)=>obj[headers[i]]=cell?cell.v:'');
@@ -56,10 +56,11 @@ function nextQuestion(){
     prompt = `What is the ${names[askForm]} of "${current[showForm]}"?`;
     expected = current[askForm];
   }
-  content.innerHTML=`<p>${prompt}</p><input id="answer" autocomplete="off">`;
+  content.innerHTML=`<p>${prompt}</p><input id="answer" autocomplete="off"><button id="submitBtn">Submit</button>`;
   const input=document.getElementById('answer');
   input.focus();
   input.addEventListener('keydown',e=>{if(e.key==='Enter')checkAnswer();});
+  document.getElementById('submitBtn').onclick=checkAnswer;
   footerBtn.textContent='Skip word';
   footerBtn.onclick=()=>nextQuestion();
   footerBtn.style.display='block';
