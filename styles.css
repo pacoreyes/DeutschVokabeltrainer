@@ -1,0 +1,17 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin: 2rem;
+}
+.hidden {
+    display: none;
+}
+#feedback {
+    margin-top: 1rem;
+}
+.correct {
+    color: green;
+}
+.incorrect {
+    color: red;
+}
