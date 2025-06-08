@@ -2,12 +2,9 @@ let verbs = [];
 let currentVerb = {};
 let currentMode = "";
 
-// URLs for the verb tables
-const regularSheetURL =
-  "https://docs.google.com/spreadsheets/d/1JiJrQCHym8USlLnTQhVtFCX4N1XtqW8S6flhEX6y-VE/gviz/tq?tqx=out:json";
-// TODO: replace with the actual URL of the irregular verb table
-const irregularSheetURL =
-  "https://docs.google.com/spreadsheets/d/YOUR_IRREGULAR_VERB_SHEET/gviz/tq?tqx=out:json";
+// Base URL for the Google Sheet containing both tabs
+const sheetBaseURL =
+  "https://docs.google.com/spreadsheets/d/1JiJrQCHym8USlLnTQhVtFCX4N1XtqW8S6flhEX6y-VE/gviz/tq?tqx=out:json&sheet=";
 
 // Map of verb form codes to their display names
 const verbFormMap = {
@@ -57,44 +54,43 @@ function showMenu() {
   document.getElementById('main-menu').classList.remove('hidden');
 }
 
-function loadVerbs() {
-  const fetchRegular = fetch(regularSheetURL)
+function fetchSheet(sheetName, type) {
+  const url = sheetBaseURL + encodeURIComponent(sheetName);
+  return fetch(url)
     .then(res => res.text())
     .then(data => {
       const start = data.indexOf("(") + 1;
       const end = data.lastIndexOf(")");
       const json = JSON.parse(data.slice(start, end));
-      return json.table.rows.slice(1).map(row => ({
-        inf: row.c[0]?.v,
-        third: row.c[1]?.v,
-        pret: row.c[2]?.v,
-        part2: row.c[3]?.v,
-        eng: row.c[4]?.v,
-        type: 'regular',
-        pattern: 'Regular (-en → -t → -te → ge-t)'
-      })).filter(v => v.eng && v.inf && v.third && v.pret && v.part2);
-    });
-
-  const fetchIrregular = fetch(irregularSheetURL)
-    .then(res => res.text())
-    .then(data => {
-      const start = data.indexOf("(") + 1;
-      const end = data.lastIndexOf(")");
-      const json = JSON.parse(data.slice(start, end));
-      return json.table.rows.slice(1).map(row => ({
-        inf: row.c[0]?.v,
-        third: row.c[1]?.v,
-        pret: row.c[2]?.v,
-        part2: row.c[3]?.v,
-        eng: row.c[4]?.v,
-        pattern: row.c[5]?.v,
-        type: 'irregular'
-      })).filter(v => v.eng && v.inf && v.third && v.pret && v.part2 && v.pattern);
+      return json.table.rows.slice(1).map(row => {
+        const entry = {
+          inf: row.c[0]?.v,
+          third: row.c[1]?.v,
+          pret: row.c[2]?.v,
+          part2: row.c[3]?.v,
+          eng: row.c[4]?.v,
+          type,
+        };
+        if (type === 'irregular') {
+          entry.pattern = row.c[5]?.v;
+        } else {
+          entry.pattern = 'Regular (-en → -t → -te → ge-t)';
+        }
+        return entry;
+      }).filter(v =>
+        v.inf && v.third && v.pret && v.part2 && v.eng &&
+        (type !== 'irregular' || v.pattern)
+      );
     })
     .catch(err => {
-      console.error('Failed to load irregular verbs', err);
+      console.error(`Failed to load ${type} verbs`, err);
       return [];
     });
+}
+
+function loadVerbs() {
+  const fetchRegular = fetchSheet('regelmäßige', 'regular');
+  const fetchIrregular = fetchSheet('unregelmäßige', 'irregular');
 
   return Promise.all([fetchRegular, fetchIrregular]).then(([regular, irregular]) => {
     verbs = [...regular, ...irregular];
