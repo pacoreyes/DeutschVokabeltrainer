@@ -1,11 +1,25 @@
-const base = 'https://docs.google.com/spreadsheets/d/1JiJrQCHym8USlLnTQhVtFCX4N1XtqW8S6flhEX6y-VE/gviz/tq?tqx=out:json';
+const BASE_URL =
+  'https://docs.google.com/spreadsheets/d/1JiJrQCHym8USlLnTQhVtFCX4N1XtqW8S6flhEX6y-VE/gviz/tq?tqx=out:json';
+
+const SHEETS = {
+  regular: 'regelmaessige',
+  irregular: 'unregelmaessige'
+};
 
 let verbs = [];
 let mode = '';
 let current = null;
 let expected = '';
+
 const forms = ['infinitive','er/sie/es','präteritum','partizipII'];
-const names = { 'infinitive':'Infinitiv','er/sie/es':'3rd Person','präteritum':'Präteritum','partizipII':'Partizip II','english':'English' };
+const names = { 
+  'infinitive':'Infinitiv',
+  'er/sie/es':'3rd Person',
+  'präteritum':'Präteritum',
+  'partizipII':'Partizip II',
+  'english':'English'
+};
+
 const content = document.getElementById('content');
 const footerBtn = document.getElementById('footerBtn');
 
@@ -22,10 +36,13 @@ async function fetchSheet(gid){
   });
 }
 
-async function fetchData(){
-  const sheets=['0','unregelmäßige'];
-  const data=await Promise.all(sheets.map(fetchSheet));
-  verbs=data.flat();
+async function loadSheets(ids) {
+  const data = await Promise.all(ids.map(fetchSheet));
+  return data.flat();
+}
+
+async function fetchData() {
+  verbs = await loadSheets([SHEETS.regular, SHEETS.irregular]);
 }
 
 function showMenu(){
