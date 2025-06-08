@@ -8,10 +8,10 @@ const sheetBaseURL =
 
 // Map of verb form codes to their display names
 const verbFormMap = {
-  "inf": "Infinitive",
-  "third": "3rd Person",
-  "pret": "Präteritum",
-  "part2": "Partizip II"
+  inf: "Infinitiv",
+  third: "er/sie/es",
+  pret: "Präteritum",
+  part2: "Partizip II"
 };
 
 const footerBtn = document.getElementById('footer-btn');
@@ -29,16 +29,6 @@ loadVerbs().then(() => {
 document.querySelectorAll('#main-menu button').forEach(btn =>
   btn.addEventListener('click', () => startGame(btn.dataset.mode))
 );
-
-// Add listener for the irregular verb button
-document.addEventListener('DOMContentLoaded', () => {
-  const irregularBtn = document.getElementById('irregular-verb-btn');
-  if (irregularBtn) {
-    irregularBtn.addEventListener('click', () => {
-      requestIrregularVerb();
-    });
-  }
-});
 
 function startGame(mode) {
   currentMode = mode;
