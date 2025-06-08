@@ -2,6 +2,13 @@ let verbs = [];
 let currentVerb = {};
 let currentMode = "";
 
+// URLs for the verb tables
+const regularSheetURL =
+  "https://docs.google.com/spreadsheets/d/1JiJrQCHym8USlLnTQhVtFCX4N1XtqW8S6flhEX6y-VE/gviz/tq?tqx=out:json";
+// TODO: replace with the actual URL of the irregular verb table
+const irregularSheetURL =
+  "https://docs.google.com/spreadsheets/d/YOUR_IRREGULAR_VERB_SHEET/gviz/tq?tqx=out:json";
+
 // Map of verb form codes to their display names
 const verbFormMap = {
   "inf": "Infinitive",
@@ -51,22 +58,48 @@ function showMenu() {
 }
 
 function loadVerbs() {
-  const sheetURL = "https://docs.google.com/spreadsheets/d/1JiJrQCHym8USlLnTQhVtFCX4N1XtqW8S6flhEX6y-VE/gviz/tq?tqx=out:json";
-  return fetch(sheetURL)
+  const fetchRegular = fetch(regularSheetURL)
     .then(res => res.text())
     .then(data => {
       const start = data.indexOf("(") + 1;
       const end = data.lastIndexOf(")");
       const json = JSON.parse(data.slice(start, end));
-      verbs = json.table.rows.slice(1).map(row => ({
+      return json.table.rows.slice(1).map(row => ({
         inf: row.c[0]?.v,
         third: row.c[1]?.v,
         pret: row.c[2]?.v,
         part2: row.c[3]?.v,
-        eng: row.c[4]?.v
+        eng: row.c[4]?.v,
+        type: 'regular',
+        pattern: 'Regular (-en → -t → -te → ge-t)'
       })).filter(v => v.eng && v.inf && v.third && v.pret && v.part2);
-      console.log(`Loaded ${verbs.length} complete verbs`);
     });
+
+  const fetchIrregular = fetch(irregularSheetURL)
+    .then(res => res.text())
+    .then(data => {
+      const start = data.indexOf("(") + 1;
+      const end = data.lastIndexOf(")");
+      const json = JSON.parse(data.slice(start, end));
+      return json.table.rows.slice(1).map(row => ({
+        inf: row.c[0]?.v,
+        third: row.c[1]?.v,
+        pret: row.c[2]?.v,
+        part2: row.c[3]?.v,
+        eng: row.c[4]?.v,
+        pattern: row.c[5]?.v,
+        type: 'irregular'
+      })).filter(v => v.eng && v.inf && v.third && v.pret && v.part2 && v.pattern);
+    })
+    .catch(err => {
+      console.error('Failed to load irregular verbs', err);
+      return [];
+    });
+
+  return Promise.all([fetchRegular, fetchIrregular]).then(([regular, irregular]) => {
+    verbs = [...regular, ...irregular];
+    console.log(`Loaded ${regular.length} regular verbs and ${irregular.length} irregular verbs`);
+  });
 }
 
 function nextQuestion() {
@@ -83,26 +116,8 @@ function nextQuestion() {
     v.inf && v.third && v.pret && v.part2 && v.eng
   );
 
-  // For deu-deu mode, ensure we include irregular verbs frequently
-  let v;
-  if (currentMode === "deu-deu") {
-    // Categorize verbs as regular or irregular
-    const irregularVerbs = validVerbs.filter(verb => detectIrregularVerb(verb));
-    const regularVerbs = validVerbs.filter(verb => !detectIrregularVerb(verb));
-
-    console.log(`Found ${irregularVerbs.length} irregular verbs and ${regularVerbs.length} regular verbs`);
-
-    // 60% chance to pick an irregular verb if available
-    if (irregularVerbs.length > 0 && Math.random() < 0.6) {
-      v = irregularVerbs[Math.floor(Math.random() * irregularVerbs.length)];
-      console.log("Selected irregular verb:", v.inf);
-    } else {
-      v = validVerbs[Math.floor(Math.random() * validVerbs.length)];
-    }
-  } else {
-    // For other modes, just pick a random verb
-    v = validVerbs[Math.floor(Math.random() * validVerbs.length)];
-  }
+  // Pick a random verb from the combined list for all modes
+  let v = validVerbs[Math.floor(Math.random() * validVerbs.length)];
 
   // Safety check in case we still don't have a valid verb
   if (!v || !v.inf) {
@@ -172,9 +187,10 @@ function showFeedback(correct, expected) {
 }
 
 function formatVerbInfo(verb) {
-  // Check if verb is irregular
-  const isIrregular = detectIrregularVerb(verb);
-  const pattern = isIrregular ? identifyVerbPattern(verb) : '';
+  const isIrregular = verb.type === 'irregular';
+  const pattern = isIrregular
+    ? verb.pattern
+    : 'Regular (-en → -t → -te → ge-t)';
 
   let infoHTML = `
     <div class="verb-info">
@@ -197,7 +213,7 @@ function formatVerbInfo(verb) {
       <p class="note">This is an irregular verb.</p>`;
   } else {
     infoHTML += `
-      <p><strong>Pattern:</strong> Regular (-en → -t → -te → ge-t)</p>
+      <p><strong>Pattern:</strong> ${pattern}</p>
       <p class="note">This is a regular verb.</p>`;
   }
 
@@ -208,47 +224,6 @@ function formatVerbInfo(verb) {
   return infoHTML;
 }
 
-function detectIrregularVerb(verb) {
-  // Simple detection of irregular verbs (can be expanded)
-  // Most regular verbs end with -t in third person and -te in past
-  const regularThirdEnding = verb.inf.endsWith('en') ? 
-    verb.inf.slice(0, -2) + 't' : verb.inf + 't';
-  const regularPretEnding = verb.inf.endsWith('en') ? 
-    verb.inf.slice(0, -2) + 'te' : verb.inf + 'te';
-
-  return verb.third !== regularThirdEnding || 
-         verb.pret !== regularPretEnding || 
-         !verb.part2.startsWith('ge') || 
-         !verb.part2.endsWith('t');
-}
-
-function identifyVerbPattern(verb) {
-  // Common German verb patterns
-  if (verb.inf.endsWith('en') && 
-      verb.pret.includes('ie') && 
-      verb.part2.includes('ie')) {
-    return "ei → ie → ie (like: bleiben → blieb → geblieben)";
-  }
-
-  if (verb.inf.includes('e') && 
-      verb.pret.includes('a') && 
-      verb.part2.includes('o')) {
-    return "e → a → o (like: sprechen → sprach → gesprochen)";
-  }
-
-  if (verb.inf.includes('i') && 
-      verb.pret.includes('a') && 
-      verb.part2.includes('u')) {
-    return "i → a → u (like: trinken → trank → getrunken)";
-  }
-
-  if (verb.inf.endsWith('en') && 
-      verb.pret === verb.part2.substring(2)) {
-    return "Strong verb with identical past and participle forms";
-  }
-
-  return "Irregular pattern";
-}
 
 // Function to specifically request an irregular verb question
 function requestIrregularVerb() {
@@ -259,8 +234,8 @@ function requestIrregularVerb() {
   }
 
   // Find all irregular verbs
-  const irregularVerbs = verbs.filter(v => 
-    v.inf && v.third && v.pret && v.part2 && v.eng && detectIrregularVerb(v)
+  const irregularVerbs = verbs.filter(v =>
+    v.inf && v.third && v.pret && v.part2 && v.eng && v.type === 'irregular'
   );
 
   console.log(`Found ${irregularVerbs.length} irregular verbs`);
