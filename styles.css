@@ -1,10 +1,37 @@
 body {
     font-family: Arial, sans-serif;
     text-align: center;
-    margin: 2rem;
+    margin: 0;
+    padding-top: 60px;
+    padding-bottom: 80px;
 }
 .hidden {
     display: none;
+}
+#main-menu button,
+#submit,
+#footer-btn {
+    font-size: 1.2rem;
+    padding: 1rem 2rem;
+    margin: 0.5rem;
+}
+
+header, footer {
+    position: fixed;
+    left: 0;
+    right: 0;
+    background: #f0f0f0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0.5rem 1rem;
+}
+
+header {
+    top: 0;
+}
+
+footer {
+    bottom: 0;
 }
 #feedback {
     margin-top: 1rem;
@@ -14,4 +41,16 @@ body {
 }
 .incorrect {
     color: red;
+}
+
+main {
+    margin: 1rem;
+}
+
+@media (min-width: 600px) {
+    #main-menu button,
+    #submit,
+    #footer-btn {
+        font-size: 1.5rem;
+    }
 }
