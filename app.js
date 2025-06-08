@@ -2,8 +2,8 @@ const BASE_URL =
   'https://docs.google.com/spreadsheets/d/1JiJrQCHym8USlLnTQhVtFCX4N1XtqW8S6flhEX6y-VE/gviz/tq?tqx=out:json';
 
 const SHEETS = {
-  regular: 'regelmaessige',
-  irregular: 'unregelmaessige'
+  regular: 'regular',
+  irregular: 'irregular'
 };
 
 let verbs = [];
@@ -23,8 +23,8 @@ const names = {
 const content = document.getElementById('content');
 const footerBtn = document.getElementById('footerBtn');
 
-async function fetchSheet(gid){
-  const res = await fetch(`${base}&gid=${encodeURIComponent(gid)}`);
+async function fetchSheet(sheetName){
+  const res = await fetch(`${BASE_URL}&sheet=${encodeURIComponent(sheetName)}`);
   const text = await res.text();
   const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}')+1));
   const rows = json.table.rows;
@@ -37,7 +37,9 @@ async function fetchSheet(gid){
 }
 
 async function loadSheets(ids) {
+  console.log('Loading sheets:', ids);
   const data = await Promise.all(ids.map(fetchSheet));
+  console.log('Sheets loaded:', data);
   return data.flat();
 }
 
