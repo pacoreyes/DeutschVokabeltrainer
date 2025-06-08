@@ -1,4 +1,5 @@
 const base = 'https://docs.google.com/spreadsheets/d/1JiJrQCHym8USlLnTQhVtFCX4N1XtqW8S6flhEX6y-VE/gviz/tq?tqx=out:json';
+
 let verbs = [];
 let mode = '';
 let current = null;
@@ -62,6 +63,7 @@ function nextQuestion(){
     prompt = `What is the ${names[askForm]} of "${current[showForm]}"?`;
     expected = current[askForm];
   }
+
   content.innerHTML=`<p>${prompt}</p><input id="answer" autocomplete="off"><button id="submitBtn">Submit</button>`;
   const input=document.getElementById('answer');
   input.focus();
