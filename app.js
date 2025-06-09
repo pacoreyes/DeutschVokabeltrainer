@@ -12,12 +12,14 @@ let current = null;
 let expected = '';
 
 const forms = ['infinitive','er/sie/es','präteritum','partizipII'];
-const names = { 
+const names = {
   'infinitive':'Infinitiv',
   'er/sie/es':'3rd Person',
   'präteritum':'Präteritum',
   'partizipII':'Partizip II',
-  'english':'English'
+  'english':'English',
+  'pattern':'Pattern',
+  'example':'Example'
 };
 
 const content = document.getElementById('content');
@@ -93,13 +95,21 @@ function nextQuestion(){
 }
 
 function checkAnswer(){
-  const val=document.getElementById('answer').value.trim();
-  const correct=val.toLowerCase()===expected.toLowerCase();
-  let msg= correct?'<p>Correct!</p>':`<p>Incorrect. Correct answer: ${expected}</p>`;
-  msg+=`<p>${current.english}: ${current['infinitive']}, ${current['er/sie/es']}, ${current['präteritum']}, ${current['partizipII']}</p>`;
-  content.innerHTML=msg;
-  footerBtn.textContent='Continue';
-  footerBtn.onclick=()=>nextQuestion();
+  const val = document.getElementById('answer').value.trim();
+  const correct = val.toLowerCase() === expected.toLowerCase();
+  let msg = correct ? '<p>Correct!</p>' : `<p>Incorrect. Correct answer: ${expected}</p>`;
+  const detailKeys = [...forms, 'english', 'pattern', 'example'];
+  msg += '<ul id="details">';
+  detailKeys.forEach(key => {
+    const value = current[key];
+    if(!value || key === 'learned') return;
+    const label = names[key] || key;
+    msg += `<li><strong>${label}:</strong> ${value}</li>`;
+  });
+  msg += '</ul>';
+  content.innerHTML = msg;
+  footerBtn.textContent = 'Continue';
+  footerBtn.onclick = () => nextQuestion();
 }
 
 document.getElementById('homeBtn').onclick=showMenu;
