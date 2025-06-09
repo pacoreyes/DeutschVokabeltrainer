@@ -3,10 +3,12 @@ const BASE_URL =
 
 const SHEETS = {
   regular: 'regular',
-  irregular: 'irregular'
+  irregular: 'irregular',
+  gegenteil: 'Gegenteil'
 };
 
 let verbs = [];
+let adjectives = [];
 let mode = '';
 let current = null;
 let expected = '';
@@ -19,7 +21,11 @@ const names = {
   'partizipII':'Partizip II',
   'english':'English',
   'pattern':'Pattern',
-  'example':'Example'
+  'example':'Example',
+  'adjectiv':'Adjektiv',
+  'english_adj':'English',
+  'gegenteil':'Gegenteil',
+  'english_geg':'Opposite English'
 };
 
 const content = document.getElementById('content');
@@ -31,7 +37,7 @@ async function fetchSheet(sheetName){
   const text = await res.text();
   const json = JSON.parse(text.substring(text.indexOf('{'), text.lastIndexOf('}')+1));
   const rows = json.table.rows;
-  const headers = rows[0].c.map(c=>c.v);
+  const headers = rows[0].c.map(c => c.v.trim());
   return rows.slice(1).map(r=>{
     const obj={};
     r.c.forEach((cell,i)=>obj[headers[i]]=cell?cell.v:'');
@@ -47,6 +53,8 @@ async function loadSheets(ids) {
 async function fetchData() {
   const data = await loadSheets([SHEETS.regular, SHEETS.irregular]);
   verbs = data.filter(v => v.focus === 'x' && v.learned !== 'x');
+  const adjData = await fetchSheet(SHEETS.gegenteil);
+  adjectives = adjData.filter(a => a.focus === 'x' && a.learned !== 'x');
 }
 
 function showMenu(){
@@ -55,6 +63,8 @@ function showMenu(){
   <button data-mode="eng-deu">Verbs eng &gt; deu</button>
   <button data-mode="deu-eng">Verbs deu &gt; eng</button>
   <button data-mode="deu-deu">Verbs deu &gt; deu</button>
+  <button data-mode="adj-geg">Adjective &gt; Gegenteil</button>
+  <button data-mode="geg-adj">Gegenteil &gt; Adjective</button>
   </div>`;
   footerBtn.style.display='none';
   document.querySelectorAll('#menu button').forEach(btn=>btn.onclick=()=>startQuiz(btn.dataset.mode));
@@ -66,7 +76,11 @@ function startQuiz(m){
 }
 
 function nextQuestion(){
-  current = verbs[Math.floor(Math.random()*verbs.length)];
+  if (mode.startsWith('adj') || mode.startsWith('geg')) {
+    current = adjectives[Math.floor(Math.random() * adjectives.length)];
+  } else {
+    current = verbs[Math.floor(Math.random() * verbs.length)];
+  }
   let prompt='';
   let showForm, askForm;
   if(mode==='eng-deu'){
@@ -83,6 +97,12 @@ function nextQuestion(){
     askForm = others[Math.floor(Math.random()*others.length)];
     prompt = `What is the <span>${names[askForm]}</span> of "<span>${current[showForm]}</span>" (${names[showForm]})?`;
     expected = current[askForm];
+  }else if(mode==='adj-geg'){
+    prompt = `What is the opposite of "<span>${current.adjectiv}</span>"?`;
+    expected = current.gegenteil;
+  }else if(mode==='geg-adj'){
+    prompt = `What is the opposite of "<span>${current.gegenteil}</span>"?`;
+    expected = current.adjectiv;
   }
 
   content.innerHTML=`<p id="prompt">${prompt}</p><input id="answer" autocomplete="off"><button id="submitBtn">Submit</button>`;
@@ -101,7 +121,10 @@ function checkAnswer(){
   const correct = val.toLowerCase() === expected.toLowerCase();
   let msg = correct ? `<h2 class="correctAnswer">Correct!</h2><p>Correct answer: ${expected}</p>` :
     `<h2 class="incorrectAnswer">Incorrect: ${val.toLowerCase()}</h2><p>Correct answer: ${expected}</h2>`;
-  const detailKeys = [...forms, 'english', 'pattern', 'example'];
+  const detailKeys =
+    mode.startsWith('adj') || mode.startsWith('geg')
+      ? ['adjectiv', 'english_adj', 'gegenteil', 'english_geg']
+      : [...forms, 'english', 'pattern', 'example'];
   msg += '<ul id="details">';
   detailKeys.forEach(key => {
     const label = names[key] || key;
