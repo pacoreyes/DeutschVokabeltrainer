@@ -99,7 +99,8 @@ function nextQuestion(){
 function checkAnswer(){
   const val = document.getElementById('answer').value.trim();
   const correct = val.toLowerCase() === expected.toLowerCase();
-  let msg = correct ? '<p>Correct!</p>' : `<p>Incorrect. Correct answer: ${expected}</p>`;
+  let msg = correct ? `<h2 class="correctAnswer">Correct!</h2><p>Correct answer: ${expected}</p>` :
+    `<h2 class="incorrectAnswer">Incorrect: ${val.toLowerCase()}</h2><p>Correct answer: ${expected}</h2>`;
   const detailKeys = [...forms, 'english', 'pattern', 'example'];
   msg += '<ul id="details">';
   detailKeys.forEach(key => {
