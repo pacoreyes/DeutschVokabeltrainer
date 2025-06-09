@@ -101,9 +101,8 @@ function checkAnswer(){
   const detailKeys = [...forms, 'english', 'pattern', 'example'];
   msg += '<ul id="details">';
   detailKeys.forEach(key => {
-    const value = current[key];
-    if(!value || key === 'learned') return;
     const label = names[key] || key;
+    const value = current[key] || '';
     msg += `<li><strong>${label}:</strong> ${value}</li>`;
   });
   msg += '</ul>';
