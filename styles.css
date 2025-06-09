@@ -10,3 +10,5 @@ footer{position:fixed;bottom:0;width:100%;}
 #prompt span{font-weight:bold;}
 #menu button{display:block;width:100%;margin:10px 0;}
 content button{display:block;width:100%;margin-top:10px;}
+#details{list-style:none;padding:0;text-align:left;margin-top:10px;}
+#details li{margin:5px 0;}
