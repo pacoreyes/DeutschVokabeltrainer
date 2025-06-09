@@ -45,7 +45,8 @@ async function loadSheets(ids) {
 }
 
 async function fetchData() {
-  verbs = await loadSheets([SHEETS.regular, SHEETS.irregular]);
+  const data = await loadSheets([SHEETS.regular, SHEETS.irregular]);
+  verbs = data.filter(v => v.focus === 'x' && v.learned !== 'x');
 }
 
 function showMenu(){
