@@ -24,6 +24,7 @@ const names = {
 
 const content = document.getElementById('content');
 const footerBtn = document.getElementById('footerBtn');
+//footerBtn.className='wideBtn';
 
 async function fetchSheet(sheetName){
   const res = await fetch(`${BASE_URL}&sheet=${encodeURIComponent(sheetName)}`);
@@ -79,7 +80,7 @@ function nextQuestion(){
     showForm = forms[Math.floor(Math.random()*forms.length)];
     const others = forms.filter(f=>f!==showForm);
     askForm = others[Math.floor(Math.random()*others.length)];
-    prompt = `What is the <span>${names[askForm]}</span> of "<span>${current[showForm]}</span>"?`;
+    prompt = `What is the <span>${names[askForm]}</span> of "<span>${current[showForm]}</span>" (${names[showForm]})?`;
     expected = current[askForm];
   }
 
